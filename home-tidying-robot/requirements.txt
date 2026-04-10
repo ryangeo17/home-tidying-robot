@@ -1,0 +1,13 @@
+# home-tidying-robot Python dependencies
+#
+# This package has NO Python dependencies beyond what ROS 2 already provides.
+# Every Python import in the package is either:
+#   - Python standard library (enum, math, os, glob), or
+#   - Provided by a `ros-${ROS_DISTRO}-*` apt package
+#     (rclpy, geometry_msgs, nav_msgs, sensor_msgs, std_msgs, tf2_msgs,
+#      xacro, launch, launch_ros, ament_index_python).
+#
+# `setuptools` is listed below only because ament_python uses it at build
+# time; it is already present on every supported Ubuntu release.
+
+setuptools
