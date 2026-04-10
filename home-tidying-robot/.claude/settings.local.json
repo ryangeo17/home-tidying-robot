@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m pip install --quiet --user pyflakes pycodestyle)",
+      "Bash(python3 -m venv /tmp/lintvenv)",
+      "Bash(/tmp/lintvenv/bin/pip install:*)",
+      "Bash(/tmp/lintvenv/bin/pyflakes home_tidying_robot/nav_node.py home_tidying_robot/arm_controller.py home_tidying_robot/arm_init_node.py launch/sim_launch.py)"
+    ]
+  }
+}

@@ -629,6 +629,15 @@
           <material><ambient>0.80 0.10 0.10 1</ambient><diffuse>0.90 0.10 0.10 1</diffuse></material>
         </visual>
       </link>
+      <plugin filename="gz-sim-detachable-joint-system"
+              name="gz::sim::systems::DetachableJoint">
+        <parent_link>link</parent_link>
+        <child_model>tidying_robot</child_model>
+        <child_link>right_gripper_palm</child_link>
+        <topic>/pickup_block_red/attach</topic>
+        <detach_topic>/pickup_block_red/detach</detach_topic>
+        <suppress_child_warning>true</suppress_child_warning>
+      </plugin>
     </model>
 
     <!-- Object 2: blue cylinder, room 1 near sofa -->
@@ -653,6 +662,15 @@
           <material><ambient>0.10 0.10 0.85 1</ambient><diffuse>0.10 0.10 0.90 1</diffuse></material>
         </visual>
       </link>
+      <plugin filename="gz-sim-detachable-joint-system"
+              name="gz::sim::systems::DetachableJoint">
+        <parent_link>link</parent_link>
+        <child_model>tidying_robot</child_model>
+        <child_link>right_gripper_palm</child_link>
+        <topic>/pickup_cylinder_blue/attach</topic>
+        <detach_topic>/pickup_cylinder_blue/detach</detach_topic>
+        <suppress_child_warning>true</suppress_child_warning>
+      </plugin>
     </model>
 
     <!-- Object 3: yellow block, room 1 — away from doorway -->
@@ -677,6 +695,15 @@
           <material><ambient>0.92 0.82 0.08 1</ambient><diffuse>0.92 0.82 0.08 1</diffuse></material>
         </visual>
       </link>
+      <plugin filename="gz-sim-detachable-joint-system"
+              name="gz::sim::systems::DetachableJoint">
+        <parent_link>link</parent_link>
+        <child_model>tidying_robot</child_model>
+        <child_link>right_gripper_palm</child_link>
+        <topic>/pickup_block_yellow/attach</topic>
+        <detach_topic>/pickup_block_yellow/detach</detach_topic>
+        <suppress_child_warning>true</suppress_child_warning>
+      </plugin>
     </model>
 
     <!-- Object 4: orange cylinder, room 2 open area -->
@@ -701,6 +728,15 @@
           <material><ambient>0.92 0.50 0.08 1</ambient><diffuse>0.92 0.50 0.08 1</diffuse></material>
         </visual>
       </link>
+      <plugin filename="gz-sim-detachable-joint-system"
+              name="gz::sim::systems::DetachableJoint">
+        <parent_link>link</parent_link>
+        <child_model>tidying_robot</child_model>
+        <child_link>right_gripper_palm</child_link>
+        <topic>/pickup_cylinder_orange/attach</topic>
+        <detach_topic>/pickup_cylinder_orange/detach</detach_topic>
+        <suppress_child_warning>true</suppress_child_warning>
+      </plugin>
     </model>
 
     <!-- Object 5: purple block, room 2 near desk -->
@@ -724,6 +760,15 @@
           <material><ambient>0.60 0.10 0.82 1</ambient><diffuse>0.60 0.10 0.82 1</diffuse></material>
         </visual>
       </link>
+      <plugin filename="gz-sim-detachable-joint-system"
+              name="gz::sim::systems::DetachableJoint">
+        <parent_link>link</parent_link>
+        <child_model>tidying_robot</child_model>
+        <child_link>right_gripper_palm</child_link>
+        <topic>/pickup_block_purple/attach</topic>
+        <detach_topic>/pickup_block_purple/detach</detach_topic>
+        <suppress_child_warning>true</suppress_child_warning>
+      </plugin>
     </model>
 
     <!-- Object 6: green block, room 2 near wardrobe (bonus 6th object) -->
@@ -747,6 +792,15 @@
           <material><ambient>0.10 0.72 0.20 1</ambient><diffuse>0.10 0.72 0.20 1</diffuse></material>
         </visual>
       </link>
+      <plugin filename="gz-sim-detachable-joint-system"
+              name="gz::sim::systems::DetachableJoint">
+        <parent_link>link</parent_link>
+        <child_model>tidying_robot</child_model>
+        <child_link>right_gripper_palm</child_link>
+        <topic>/pickup_block_green/attach</topic>
+        <detach_topic>/pickup_block_green/detach</detach_topic>
+        <suppress_child_warning>true</suppress_child_warning>
+      </plugin>
     </model>
 
 
