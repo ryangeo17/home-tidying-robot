@@ -67,6 +67,10 @@ OBJECTS = [
 # Collection box centre, matches worlds/world.sdf.
 BOX_XY = (-4.2, -3.0)
 
+# Robot spawn position in the world frame (must match sim_launch.py).
+SPAWN_X = -4.0
+SPAWN_Y = 0.0
+
 # Gripper tip offset in base_link frame at REACH_DOWN pose. The right shoulder
 # joint origin is (0, -0.12, 0.60) in base_link. With shoulder=1.0, elbow=-1.0
 # the forearm hangs vertically and the gripper tip lies at roughly
@@ -200,8 +204,8 @@ class NavNode(Node):
     # ======================================================================
 
     def _odom_cb(self, msg):
-        self.x = msg.pose.pose.position.x
-        self.y = msg.pose.pose.position.y
+        self.x = msg.pose.pose.position.x + SPAWN_X
+        self.y = msg.pose.pose.position.y + SPAWN_Y
 
         q = msg.pose.pose.orientation
         self.yaw = math.atan2(
@@ -352,6 +356,7 @@ class NavNode(Node):
     def _plan_object_approach(self):
         obj = OBJECTS[self.obj_index]
         ox, oy = obj.xy
+
 
         # Approach heading = current position → object. Robot is positioned
         # so that, once at target_yaw, the gripper sits directly over the
