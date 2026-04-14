@@ -72,16 +72,16 @@ SPAWN_X = -4.0
 SPAWN_Y = 0.0
 
 # Gripper tip offset in base_link frame at REACH_DOWN pose. The right shoulder
-# joint origin is (0, -0.12, 0.60) in base_link. Shoulder axis is +Y, so
-# positive rotation swings the arm *backward* (-X). With shoulder=1.0,
-# elbow=-1.0 the forearm hangs vertically and the gripper tip lies at roughly
-# (-0.236, -0.12) in the XY plane (behind the robot).
-GRIPPER_DX_REACH = -0.236
+# joint origin is (0, -0.12, 0.60) in base_link. With shoulder=1.0, elbow=-1.0
+# the forearm hangs vertically and the gripper tip lies at roughly
+# (+0.236, -0.12) in the XY plane. These are hand-tuned — verify visually and
+# adjust before shipping.
+GRIPPER_DX_REACH = 0.236
 GRIPPER_DY_REACH = -0.12
 
-# Same for the OVER_BOX pose (shoulder=1.5, elbow=-2.0). Upper arm tip at
-# x=-0.279, forearm+palm at net R_y(-0.5) contributes x=+0.137, total=-0.143.
-GRIPPER_DX_OVERBOX = -0.143
+# Same for the OVER_BOX pose (shoulder=1.5, elbow=-2.0). Forearm is angled
+# forward/up, so the gripper sits lower in X but higher in Z.
+GRIPPER_DX_OVERBOX = 0.113
 GRIPPER_DY_OVERBOX = -0.12
 
 # ---------------------------------------------------------------------------
@@ -402,14 +402,16 @@ class NavNode(Node):
         if self.obj_index == 0 and self.objects_picked == 0:
             route.insert(0, SPAWN_CLEAR_SOUTH)
 
-        # Compute approach heading from the penultimate waypoint (the
-        # direction the robot is actually arriving from) so the gripper
-        # offset aligns correctly.
+        
+        # Compute approach heading using the last segment into the goal.
+        # Ignore waypoint index quirks; only care about final approach direction.
         if len(route) > 1:
             prev = route[-2]
         else:
             prev = start
-        yaw = math.atan2(oy - prev[1], ox - prev[0])
+
+        goal = (ox, oy)
+        yaw = math.atan2(goal[1] - prev[1], goal[0] - prev[0])
         cos_y = math.cos(yaw)
         sin_y = math.sin(yaw)
 
