@@ -219,8 +219,8 @@ class NavNode(Node):
     # ======================================================================
 
     def _odom_cb(self, msg):
-        self.x = msg.pose.pose.position.x + SPAWN_X
-        self.y = msg.pose.pose.position.y + SPAWN_Y
+        self.x = msg.pose.pose.position.x
+        self.y = msg.pose.pose.position.y
 
         q = msg.pose.pose.orientation
         self.yaw = math.atan2(
