@@ -84,6 +84,19 @@ GRIPPER_DY_REACH = -0.12
 GRIPPER_DX_OVERBOX = 0.113
 GRIPPER_DY_OVERBOX = -0.12
 
+# ---------------------------------------------------------------------------
+# Obstacle-avoidance waypoints
+# ---------------------------------------------------------------------------
+# Doorway centre — the divider wall at x=0 has a 2 m opening at y ∈ [-1,+1].
+DOORWAY_WP = (0.0, 0.0)
+
+# Open corridor SE of the table / Chair 2 cluster in Room 1.
+R1_CLEAR_SOUTH = (-1.2, -1.0)
+
+# South of spawn — used once on the very first leg (Spawn → Red) to avoid
+# clipping Chair 2 when heading SE from the spawn position.
+SPAWN_CLEAR_SOUTH = (-4.0, -1.5)
+
 
 # ---------------------------------------------------------------------------
 # States
@@ -179,6 +192,8 @@ class NavNode(Node):
         self.aligned_count = 0
         self.nav_target = None        # (x, y) world-frame target
         self.target_yaw = None        # desired heading on arrival
+        self.nav_waypoints = []       # ordered (x,y) waypoints for current nav
+        self.wp_index = 0             # index into nav_waypoints
 
         # --- Metrics ---
         self.dist_traveled = 0.0
@@ -353,15 +368,48 @@ class NavNode(Node):
     # Planning helpers
     # ======================================================================
 
+    def _plan_waypoints(self, start, goal):
+        """Return intermediate waypoints (plus goal) that avoid obstacles."""
+        waypoints = []
+
+        # Cross-room: route through the doorway
+        if (start[0] < -0.1 and goal[0] > 0.1) or \
+           (start[0] > 0.1 and goal[0] < -0.1):
+            waypoints.append(DOORWAY_WP)
+
+        # Chair / table cluster in Room 1: if the remaining segment goes
+        # from south (y < -0.5) to north (y > 1.5) or vice-versa, detour
+        # through the open corridor south-east of the cluster.
+        prev = waypoints[-1] if waypoints else start
+        if prev[0] < 0 and goal[0] < 0:
+            if (prev[1] < -0.5 and goal[1] > 1.5) or \
+               (prev[1] > 1.5 and goal[1] < -0.5):
+                waypoints.append(R1_CLEAR_SOUTH)
+
+        waypoints.append(goal)
+        return waypoints
+
     def _plan_object_approach(self):
         obj = OBJECTS[self.obj_index]
         ox, oy = obj.xy
+        start = (self.x, self.y)
 
+        # Build obstacle-free route to the object's position.
+        route = self._plan_waypoints(start, (ox, oy))
 
-        # Approach heading = current position → object. Robot is positioned
-        # so that, once at target_yaw, the gripper sits directly over the
-        # object.
-        yaw = math.atan2(oy - self.y, ox - self.x)
+        # First leg ever (Spawn → Red): prepend the south-of-spawn waypoint
+        # so the diagonal doesn't clip Chair 2.
+        if self.obj_index == 0 and self.objects_picked == 0:
+            route.insert(0, SPAWN_CLEAR_SOUTH)
+
+        # Compute approach heading from the penultimate waypoint (the
+        # direction the robot is actually arriving from) so the gripper
+        # offset aligns correctly.
+        if len(route) > 1:
+            prev = route[-2]
+        else:
+            prev = start
+        yaw = math.atan2(oy - prev[1], ox - prev[0])
         cos_y = math.cos(yaw)
         sin_y = math.sin(yaw)
 
@@ -369,29 +417,44 @@ class NavNode(Node):
         target_x = ox - GRIPPER_DX_REACH * cos_y + GRIPPER_DY_REACH * sin_y
         target_y = oy - GRIPPER_DX_REACH * sin_y - GRIPPER_DY_REACH * cos_y
 
-        self.nav_target = (target_x, target_y)
+        # Replace the last waypoint (raw object pos) with the offset approach
+        route[-1] = (target_x, target_y)
+
+        self.nav_waypoints = route
+        self.wp_index = 0
         self.target_yaw = yaw
         self.get_logger().info(
             f'[plan] object {obj.color} @ ({ox:.2f},{oy:.2f}) '
-            f'-> robot target ({target_x:.2f},{target_y:.2f}) '
-            f'yaw={yaw:.2f}'
+            f'-> {len(route)} waypoints, '
+            f'final ({target_x:.2f},{target_y:.2f}) yaw={yaw:.2f}'
         )
 
     def _plan_box_approach(self):
         bx, by = BOX_XY
-        yaw = math.atan2(by - self.y, bx - self.x)
+        start = (self.x, self.y)
+
+        route = self._plan_waypoints(start, (bx, by))
+
+        if len(route) > 1:
+            prev = route[-2]
+        else:
+            prev = start
+        yaw = math.atan2(by - prev[1], bx - prev[0])
         cos_y = math.cos(yaw)
         sin_y = math.sin(yaw)
 
         target_x = bx - GRIPPER_DX_OVERBOX * cos_y + GRIPPER_DY_OVERBOX * sin_y
         target_y = by - GRIPPER_DX_OVERBOX * sin_y - GRIPPER_DY_OVERBOX * cos_y
 
-        self.nav_target = (target_x, target_y)
+        route[-1] = (target_x, target_y)
+
+        self.nav_waypoints = route
+        self.wp_index = 0
         self.target_yaw = yaw
         self.get_logger().info(
             f'[plan] box @ ({bx:.2f},{by:.2f}) '
-            f'-> robot target ({target_x:.2f},{target_y:.2f}) '
-            f'yaw={yaw:.2f}'
+            f'-> {len(route)} waypoints, '
+            f'final ({target_x:.2f},{target_y:.2f}) yaw={yaw:.2f}'
         )
 
     # ======================================================================
@@ -479,8 +542,10 @@ class NavNode(Node):
         self._transition(State.NAV_TO_OBJECT)
 
     def _do_nav_to_object(self):
-        if self._drive_toward(self.nav_target):
-            self._transition(State.ALIGN_OBJECT)
+        if self._drive_toward(self.nav_waypoints[self.wp_index]):
+            self.wp_index += 1
+            if self.wp_index >= len(self.nav_waypoints):
+                self._transition(State.ALIGN_OBJECT)
 
     def _do_align_object(self):
         if self._rotate_to(self.target_yaw):
@@ -502,8 +567,10 @@ class NavNode(Node):
         self._wait_arm_settled(State.NAV_TO_BOX)
 
     def _do_nav_to_box(self):
-        if self._drive_toward(self.nav_target):
-            self._transition(State.ALIGN_BOX)
+        if self._drive_toward(self.nav_waypoints[self.wp_index]):
+            self.wp_index += 1
+            if self.wp_index >= len(self.nav_waypoints):
+                self._transition(State.ALIGN_BOX)
 
     def _do_align_box(self):
         if self._rotate_to(self.target_yaw):
