@@ -140,6 +140,14 @@ Several deliberate tradeoffs were made to prioritize system reliability:
 
 ---
 
+## Note on Development Workflow
+
+During development I used Claude Code CLI to speed up implementation, especially for repetitive ROS 2 setup and boilerplate. It worked well for fast iteration, but became less efficient as system complexity increased (URDF ↔ control ↔ simulation interactions), requiring more guidance and validation.
+
+Experiencing these limits firsthand made me more interested in how Drift approaches improving efficiency and reliability for this kind of workflow, especially in tightly coupled robotics systems.
+
+---
+
 ## Performance and Execution
 
 The system completes a full 6-object run in **under 5 minutes** of simulated time. Each pick-and-place cycle is consistent and repeatable due to deterministic state transitions and fixed world structure.
